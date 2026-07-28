@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Для тебя</title>
+<style>
+  :root{
+    --bg1:#2a1b2e;
+    --bg2:#3d2340;
+    --rose:#ff8bb0;
+    --rose-soft:#ffc2d6;
+    --gold:#ffd79a;
+    --cream:#fff4ef;
+    --ink:#4a2b3a;
+    --glass:rgba(255,255,255,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    font-family:"Georgia","Times New Roman",serif;
+    color:var(--cream);
+    background:
+      radial-gradient(1200px 800px at 20% 10%, #55304f 0%, transparent 60%),
+      radial-gradient(1000px 700px at 90% 90%, #4a2a45 0%, transparent 55%),
+      linear-gradient(160deg, var(--bg1), var(--bg2));
+    background-attachment:fixed;
+    overflow-x:hidden;
+    min-height:100%;
+    text-align:center;
+    line-height:1.6;
+  }
+  /* floating hearts backdrop */
+  .bg-hearts{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+  .bg-hearts span{
+    position:absolute;bottom:-40px;font-size:18px;opacity:.18;
+    animation:floatUp linear infinite;color:var(--rose-soft);
+  }
+  @keyframes floatUp{
+    0%{transform:translateY(0) rotate(0);opacity:0;}
+    10%{opacity:.22;}
+    90%{opacity:.22;}
+    100%{transform:translateY(-110vh) rotate(360deg);opacity:0;}
+  }
+
+  .wrap{position:relative;z-index:2;max-width:640px;margin:0 auto;padding:0 22px 80px;}
+
+  /* progress bar of collected digits */
+  #tracker{
+    position:sticky;top:0;z-index:5;
+    display:flex;justify-content:center;gap:8px;flex-wrap:wrap;
+    padding:14px 10px 12px;
+    background:linear-gradient(to bottom, rgba(42,27,46,.92), rgba(42,27,46,0));
+    backdrop-filter:blur(4px);
+  }
+  .chip{
+    width:34px;height:34px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:16px;font-weight:bold;
+    border:1px dashed rgba(255,194,214,.5);
+    color:rgba(255,194,214,.45);
+    background:var(--glass);
+    transition:transform .5s cubic-bezier(.2,1.5,.4,1), color .4s, border .4s, box-shadow .4s;
+  }
+  .chip.filled{
+    color:var(--ink);border:1px solid var(--gold);
+    background:linear-gradient(135deg,var(--gold),var(--rose-soft));
+    box-shadow:0 0 16px rgba(255,215,154,.6);
+    transform:scale(1.08);
+  }
+
+  section{
+    min-height:88vh;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:40px 0;
+    opacity:0;transform:translateY(30px);
+    transition:opacity 1s ease, transform 1s ease;
+  }
+  section.show{opacity:1;transform:none;}
+
+  h1{font-size:34px;font-weight:normal;letter-spacing:.5px;margin-bottom:6px;}
+  h2{font-size:24px;font-weight:normal;margin-bottom:14px;color:var(--gold);}
+  p.lead{font-size:17px;color:var(--rose-soft);max-width:440px;margin:0 auto 26px;}
+  .hint{font-size:14px;color:rgba(255,244,239,.55);margin-top:14px;min-height:20px;}
+
+  .stage{
+    position:relative;width:280px;height:280px;margin:10px auto 4px;
+    display:flex;align-items:center;justify-content:center;
+  }
+
+  .btn{
+    cursor:pointer;border:none;border-radius:40px;
+    padding:14px 30px;font-family:inherit;font-size:17px;
+    color:var(--ink);background:linear-gradient(135deg,var(--rose),var(--gold));
+    box-shadow:0 8px 24px rgba(255,139,176,.35);
+    transition:transform .2s, box-shadow .2s, opacity .4s;
+    margin-top:12px;
+  }
+  .btn:active{transform:scale(.96);}
+  .btn.ghost{background:var(--glass);color:var(--cream);border:1px solid rgba(255,194,214,.4);box-shadow:none;}
+
+  .reward{
+    margin-top:22px;font-size:15px;color:var(--gold);
+    opacity:0;transform:translateY(10px);transition:.6s;min-height:26px;
+  }
+  .reward.show{opacity:1;transform:none;}
+  .digit-pop{
+    display:inline-block;font-size:30px;font-weight:bold;
+    color:var(--ink);background:linear-gradient(135deg,var(--gold),var(--rose-soft));
+    width:46px;height:46px;line-height:46px;border-radius:50%;
+    box-shadow:0 0 20px rgba(255,215,154,.7);vertical-align:middle;margin:0 6px;
+    animation:pop .6s cubic-bezier(.2,1.6,.4,1);
+  }
+  @keyframes pop{0%{transform:scale(0) rotate(-40deg);}100%{transform:scale(1) rotate(0);}}
+
+  .scroll-cue{font-size:13px;color:rgba(255,244,239,.5);margin-top:30px;animation:bob 1.8s ease-in-out infinite;}
+  @keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(6px);}}
+
+  /* ---- intro ---- */
+  #enterBtn{font-size:19px;padding:16px 40px;}
+
+  /* ---- heart zone ---- */
+  #heart{
+    font-size:90px;cursor:pointer;user-select:none;
+    filter:grayscale(.6) brightness(.7);
+    transform:scale(.9);transition:filter .1s, transform .1s;
+    text-shadow:0 0 0 rgba(255,139,176,0);
+  }
+  #heart.beat{animation:beat .35s;}
+  @keyframes beat{0%{transform:scale(1);}30%{transform:scale(1.25);}100%{transform:scale(1);}}
+
+  /* ---- clouds/sun zone ---- */
+  .sky{position:relative;width:280px;height:220px;}
+  .sun{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.4);
+    font-size:80px;opacity:.25;transition:transform 1s cubic-bezier(.2,1.4,.4,1),opacity 1s;
+    filter:drop-shadow(0 0 20px rgba(255,215,154,.6));
+  }
+  .cloud{
+    position:absolute;font-size:64px;cursor:pointer;user-select:none;
+    transition:transform .8s ease, opacity .8s ease;
+  }
+  .cloud.gone{opacity:0;pointer-events:none;}
+
+  /* ---- candles zone ---- */
+  .candles{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;}
+  .candle{cursor:pointer;font-size:52px;user-select:none;filter:grayscale(1) brightness(.6);transition:.4s;position:relative;}
+  .candle.lit{filter:none;text-shadow:0 -6px 22px rgba(255,215,154,.9);transform:translateY(-4px);}
+
+  /* ---- petals/flower zone ---- */
+  .petalfield{position:relative;width:280px;height:240px;}
+  .petal{position:absolute;font-size:34px;cursor:pointer;user-select:none;transition:transform .6s, opacity .6s;}
+  .petal.taken{opacity:0;transform:scale(.2) translateY(-40px);pointer-events:none;}
+  #bouquet{font-size:70px;opacity:0;transition:opacity 1s, transform 1s;transform:scale(.5);position:absolute;left:50%;top:50%;transform-origin:center;}
+
+  /* ---- envelope zone ---- */
+  .envelope{font-size:84px;cursor:pointer;user-select:none;transition:transform .3s;}
+  .envelope:active{transform:scale(.95);}
+  .letter{
+    max-width:400px;background:var(--cream);color:var(--ink);
+    border-radius:14px;padding:24px 26px;margin-top:20px;font-size:16px;
+    box-shadow:0 14px 40px rgba(0,0,0,.35);
+    max-height:0;overflow:hidden;opacity:0;
+    transition:max-height 1s ease, opacity .8s ease, padding .8s ease;
+    padding-top:0;padding-bottom:0;
+  }
+  .letter.open{max-height:400px;opacity:1;padding-top:24px;padding-bottom:24px;}
+
+  /* ---- star wish zone ---- */
+  #starSky{position:relative;width:280px;height:240px;cursor:crosshair;border-radius:16px;overflow:hidden;background:radial-gradient(circle at 50% 40%, #3a2450, #241436);}
+  .dot{position:absolute;width:4px;height:4px;border-radius:50%;background:#fff;opacity:.5;}
+  #wishStar{position:absolute;font-size:20px;transition:transform .1s;}
+  .streak{position:absolute;width:2px;height:60px;background:linear-gradient(var(--gold),transparent);transform:rotate(35deg);opacity:0;}
+
+  /* ---- final zone ---- */
+  #finalZone{min-height:100vh;}
+  .slots{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:24px auto;}
+  .slot{
+    width:44px;height:60px;border-radius:10px;border:2px dashed rgba(255,194,214,.4);
+    display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:bold;
+    color:var(--rose-soft);background:var(--glass);transition:.4s;
+  }
+  .slot.dot{width:16px;border:none;background:none;color:var(--gold);}
+  .slot.filled{border:2px solid var(--gold);color:var(--gold);background:rgba(255,215,154,.12);}
+  .pool{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:18px auto;max-width:420px;}
+  .token{
+    width:48px;height:48px;border-radius:50%;font-size:24px;font-weight:bold;cursor:pointer;
+    color:var(--ink);background:linear-gradient(135deg,var(--gold),var(--rose-soft));
+    border:none;box-shadow:0 6px 18px rgba(255,215,154,.4);
+    transition:transform .2s, opacity .3s;font-family:inherit;
+  }
+  .token:active{transform:scale(.9);}
+  .token.used{opacity:0;pointer-events:none;}
+
+  #finalDate{
+    font-size:46px;letter-spacing:3px;color:var(--gold);margin-top:10px;
+    opacity:0;transform:scale(.7);transition:1.2s cubic-bezier(.2,1.4,.4,1);
+    text-shadow:0 0 30px rgba(255,215,154,.7);
+  }
+  #finalDate.show{opacity:1;transform:scale(1);}
+
+  .burst{position:fixed;inset:0;pointer-events:none;z-index:9;overflow:hidden;}
+
+  @media(max-width:480px){
+    h1{font-size:28px;} h2{font-size:21px;}
+    .stage{width:240px;height:240px;}
+    #finalDate{font-size:34px;}
+    .slot{width:36px;height:52px;font-size:22px;}
+  }
+</style>
+</head>
+<body>
+<div class="bg-hearts" id="bgHearts"></div>
+
+<div id="tracker" aria-hidden="true"></div>
+
+<div class="wrap">
+
+  <!-- INTRO -->
+  <section id="intro" class="show">
+    <h1>Привет ✨</h1>
+    <p class="lead">Я очень соскучился. И так рад, что ты идёшь на поправку — прямо от сердца отлегло.<br><br>
+      Я спрятал для тебя маленькое послание. Оно раскроется по кусочкам, пока ты играешь. Готова?</p>
+    <button class="btn" id="enterBtn">Начать 💫</button>
+    <div class="scroll-cue">✦</div>
+  </section>
+
+  <!-- 1. HEART -->
+  <section id="z-heart" data-digit="3">
+    <h2>Тёплый огонёк</h2>
+    <p class="lead">Это сердечко почти уснуло, пока тебя не было рядом. Постучи по нему, разбуди — пусть снова забьётся.</p>
+    <div class="stage"><div id="heart">🩶</div></div>
+    <div class="hint" id="heartHint">Нажимай на сердечко</div>
+    <div class="reward" id="rw-heart"></div>
+  </section>
+
+  <!-- 2. CLOUDS -->
+  <section id="z-clouds" data-digit="1,0">
+    <h2>Пусть выглянет солнце</h2>
+    <p class="lead">Болезнь — как тучки, что закрыли небо. Разведи их в стороны, и станет светло.</p>
+    <div class="stage">
+      <div class="sky" id="sky">
+        <div class="sun" id="sun">☀️</div>
+        <div class="cloud" data-c="1" style="left:20px;top:20px;">☁️</div>
+        <div class="cloud" data-c="2" style="left:150px;top:30px;">☁️</div>
+        <div class="cloud" data-c="3" style="left:70px;top:110px;">☁️</div>
+      </div>
+    </div>
+    <div class="hint" id="cloudHint">Нажми на каждую тучку</div>
+    <div class="reward" id="rw-clouds"></div>
+  </section>
+
+  <!-- 3. CANDLES -->
+  <section id="z-candles" data-digit="7">
+    <h2>Огоньки заботы</h2>
+    <p class="lead">Зажги все свечи — по одной за каждый день, что я думал о тебе.</p>
+    <div class="stage">
+      <div class="candles" id="candles">
+        <div class="candle">🕯️</div><div class="candle">🕯️</div>
+        <div class="candle">🕯️</div><div class="candle">🕯️</div>
+        <div class="candle">🕯️</div>
+      </div>
+    </div>
+    <div class="hint" id="candleHint">Нажимай на свечи, чтобы зажечь</div>
+    <div class="reward" id="rw-candles"></div>
+  </section>
+
+  <!-- 4. PETALS -->
+  <section id="z-petals" data-digit="2,0">
+    <h2>Букет для тебя</h2>
+    <p class="lead">Собери лепестки — из них сложится цветок. Такой же нежный, как ты.</p>
+    <div class="stage">
+      <div class="petalfield" id="petalfield">
+        <div id="bouquet">🌸</div>
+      </div>
+    </div>
+    <div class="hint" id="petalHint">Собери все лепестки</div>
+    <div class="reward" id="rw-petals"></div>
+  </section>
+
+  <!-- 5. ENVELOPE -->
+  <section id="z-letter" data-digit="2">
+    <h2>Маленькое признание</h2>
+    <p class="lead">Здесь письмо, которое я не решался сказать вслух. Открой конверт.</p>
+    <div class="stage"><div class="envelope" id="envelope">💌</div></div>
+    <div class="letter" id="letter">
+      Знаешь, дни без тебя тянутся дольше обычного. Я ловлю себя на том, что улыбаюсь просто вспоминая тебя.
+      Пожалуйста, поправляйся до конца и береги себя — а всё остальное я беру на себя. 🤍
+    </div>
+    <div class="hint" id="letterHint">Нажми на конверт</div>
+    <div class="reward" id="rw-letter"></div>
+  </section>
+
+  <!-- 6. STAR WISH -->
+  <section id="z-star" data-digit="6">
+    <h2>Загадай желание</h2>
+    <p class="lead">Поймай падающую звезду — веди её пальцем и отпусти в центр неба.</p>
+    <div class="stage">
+      <div id="starSky">
+        <div id="wishStar" style="left:20px;top:20px;">⭐</div>
+      </div>
+    </div>
+    <div class="hint" id="starHint">Тяни звезду в центр</div>
+    <div class="reward" id="rw-star"></div>
+  </section>
+
+  <!-- FINAL -->
+  <section id="finalZone">
+    <h2>Собери всё воедино</h2>
+    <p class="lead">Ты собрала все кусочки. Расставь цифры по местам — и увидишь, что они складывают.</p>
+    <div class="slots" id="slots"></div>
+    <div class="pool" id="pool"></div>
+    <div class="hint" id="finalHint">Нажимай на цифры по порядку слева направо</div>
+    <div id="finalDate">31 · 07 · 2026</div>
+    <div id="finalMsg" class="reward"></div>
+    <button class="btn ghost" id="resetBtn" style="display:none;margin-top:26px;">Пройти заново</button>
+  </section>
+
+</div>
+
+<div class="burst" id="burst"></div>
+
+<script>
+/* ---------- background hearts ---------- */
+(function(){
+  const box=document.getElementById('bgHearts');
+  const glyphs=['🤍','💗','✨','🌸','⭐'];
+  for(let i=0;i<22;i++){
+    const s=document.createElement('span');
+    s.textContent=glyphs[i%glyphs.length];
+    s.style.left=Math.random()*100+'%';
+    s.style.fontSize=(12+Math.random()*22)+'px';
+    s.style.animationDuration=(10+Math.random()*16)+'s';
+    s.style.animationDelay=(-Math.random()*20)+'s';
+    box.appendChild(s);
+  }
+})();
+
+/* ---------- date + tracker ---------- */
+const DATE=['3','1','0','7','2','0','2','6'];   // 31 07 2026
+let collected=0;
+const tracker=document.getElementById('tracker');
+const chips=[];
+DATE.forEach(()=>{
+  const c=document.createElement('div');
+  c.className='chip';c.textContent='?';
+  tracker.appendChild(c);chips.push(c);
+});
+function award(count){
+  for(let i=0;i<count;i++){
+    if(collected<DATE.length){
+      chips[collected].textContent=DATE[collected];
+      chips[collected].classList.add('filled');
+      collected++;
+    }
+  }
+}
+function rewardText(el,digits){
+  el.innerHTML='Ты получила: '+digits.map(d=>'<span class="digit-pop">'+d+'</span>').join('');
+  el.classList.add('show');
+}
+
+/* ---------- reveal sections on scroll ---------- */
+const io=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('show');});
+},{threshold:.25});
+document.querySelectorAll('section').forEach(s=>{if(s.id!=='intro')io.observe(s);});
+
+function goNext(el){
+  const next=el.nextElementSibling;
+  if(next){setTimeout(()=>next.scrollIntoView({behavior:'smooth'}),900);}
+}
+
+/* ---------- intro ---------- */
+document.getElementById('enterBtn').addEventListener('click',()=>{
+  document.getElementById('z-heart').scrollIntoView({behavior:'smooth'});
+});
+
+/* ---------- 1. HEART ---------- */
+(function(){
+  const heart=document.getElementById('heart');
+  const hint=document.getElementById('heartHint');
+  const zone=document.getElementById('z-heart');
+  let taps=0,done=false;const need=6;
+  heart.addEventListener('click',()=>{
+    if(done)return;
+    taps++;
+    heart.classList.remove('beat');void heart.offsetWidth;heart.classList.add('beat');
+    const p=taps/need;
+    heart.style.filter=`grayscale(${Math.max(0,.6-p*.6)}) brightness(${.7+p*.5})`;
+    if(taps>=3)heart.textContent='❤️';
+    hint.textContent=`Ещё немного... (${Math.min(taps,need)}/${need})`;
+    if(taps>=need){
+      done=true;heart.textContent='❤️';hint.textContent='Забилось! 💓';
+      award(1);rewardText(document.getElementById('rw-heart'),['3']);
+      goNext(zone);
+    }
+  });
+})();
+
+/* ---------- 2. CLOUDS ---------- */
+(function(){
+  const zone=document.getElementById('z-clouds');
+  const sun=document.getElementById('sun');
+  const hint=document.getElementById('cloudHint');
+  const clouds=zone.querySelectorAll('.cloud');
+  let gone=0,done=false;
+  clouds.forEach(c=>{
+    c.addEventListener('click',()=>{
+      if(c.classList.contains('gone'))return;
+      const dir=(parseInt(c.dataset.c)%2===0)?1:-1;
+      c.style.transform=`translateX(${dir*260}px) translateY(-40px)`;
+      c.classList.add('gone');gone++;
+      const p=gone/clouds.length;
+      sun.style.opacity=(.25+p*.75);
+      sun.style.transform=`translate(-50%,-50%) scale(${.4+p*.7})`;
+      hint.textContent=`${gone}/3`;
+      if(gone===clouds.length && !done){
+        done=true;hint.textContent='Небо чистое ☀️';
+        award(2);rewardText(document.getElementById('rw-clouds'),['1','0']);
+        goNext(zone);
+      }
+    });
+  });
+})();
+
+/* ---------- 3. CANDLES ---------- */
+(function(){
+  const zone=document.getElementById('z-candles');
+  const hint=document.getElementById('candleHint');
+  const candles=zone.querySelectorAll('.candle');
+  let lit=0,done=false;
+  candles.forEach(c=>{
+    c.addEventListener('click',()=>{
+      if(c.classList.contains('lit'))return;
+      c.classList.add('lit');c.textContent='🔥';lit++;
+      hint.textContent=`${lit}/5`;
+      if(lit===candles.length && !done){
+        done=true;hint.textContent='Все горят 🕯️✨';
+        award(1);rewardText(document.getElementById('rw-candles'),['7']);
+        goNext(zone);
+      }
+    });
+  });
+})();
+
+/* ---------- 4. PETALS ---------- */
+(function(){
+  const zone=document.getElementById('z-petals');
+  const field=document.getElementById('petalfield');
+  const bouquet=document.getElementById('bouquet');
+  const hint=document.getElementById('petalHint');
+  const N=6;let taken=0,done=false;
+  const pos=[[20,20],[200,10],[120,60],[30,140],[210,150],[110,180]];
+  for(let i=0;i<N;i++){
+    const p=document.createElement('div');
+    p.className='petal';p.textContent='🌷';
+    p.style.left=pos[i][0]+'px';p.style.top=pos[i][1]+'px';
+    p.addEventListener('click',()=>{
+      if(p.classList.contains('taken'))return;
+      p.classList.add('taken');taken++;
+      hint.textContent=`${taken}/${N}`;
+      bouquet.style.opacity=(taken/N);
+      bouquet.style.transform=`translate(-50%,-50%) scale(${.5+taken/N*.8})`;
+      if(taken===N && !done){
+        done=true;hint.textContent='Букет собран 💐';
+        bouquet.textContent='💐';
+        award(2);rewardText(document.getElementById('rw-petals'),['2','0']);
+        goNext(zone);
+      }
+    });
+    field.appendChild(p);
+  }
+  bouquet.style.transform='translate(-50%,-50%) scale(.5)';
+})();
+
+/* ---------- 5. ENVELOPE ---------- */
+(function(){
+  const zone=document.getElementById('z-letter');
+  const env=document.getElementById('envelope');
+  const letter=document.getElementById('letter');
+  const hint=document.getElementById('letterHint');
+  let done=false;
+  env.addEventListener('click',()=>{
+    if(done)return;done=true;
+    env.textContent='💖';letter.classList.add('open');
+    hint.textContent='';
+    setTimeout(()=>{
+      award(1);rewardText(document.getElementById('rw-letter'),['2']);
+      goNext(zone);
+    },1400);
+  });
+})();
+
+/* ---------- 6. STAR WISH (drag) ---------- */
+(function(){
+  const zone=document.getElementById('z-star');
+  const sky=document.getElementById('starSky');
+  const star=document.getElementById('wishStar');
+  const hint=document.getElementById('starHint');
+  let done=false,dragging=false;
+  // decorative dots
+  for(let i=0;i<26;i++){
+    const d=document.createElement('div');d.className='dot';
+    d.style.left=Math.random()*100+'%';d.style.top=Math.random()*100+'%';
+    sky.appendChild(d);
+  }
+  function point(e){
+    const r=sky.getBoundingClientRect();
+    const t=e.touches?e.touches[0]:e;
+    let x=t.clientX-r.left, y=t.clientY-r.top;
+    x=Math.max(0,Math.min(r.width-20,x));
+    y=Math.max(0,Math.min(r.height-20,y));
+    star.style.left=x+'px';star.style.top=y+'px';
+    // near center?
+    const cx=r.width/2-10, cy=r.height/2-10;
+    if(!done && Math.hypot(x-cx,y-cy)<28){
+      done=true;dragging=false;
+      star.textContent='🌟';
+      star.style.left=cx+'px';star.style.top=cy+'px';
+      hint.textContent='Желание загадано ✨';
+      // little streak
+      const s=document.createElement('div');s.className='streak';
+      s.style.left=(cx+8)+'px';s.style.top=(cy-50)+'px';s.style.opacity='.9';
+      sky.appendChild(s);
+      award(1);rewardText(document.getElementById('rw-star'),['6']);
+      setTimeout(()=>buildFinal(),300);
+      goNext(zone);
+    }
+  }
+  const start=()=>{if(!done)dragging=true;};
+  const end=()=>{dragging=false;};
+  const move=e=>{if(dragging){point(e);e.preventDefault();}};
+  star.addEventListener('mousedown',start);
+  sky.addEventListener('mousemove',move);
+  window.addEventListener('mouseup',end);
+  star.addEventListener('touchstart',start,{passive:true});
+  sky.addEventListener('touchmove',move,{passive:false});
+  window.addEventListener('touchend',end);
+})();
+
+/* ---------- FINAL ---------- */
+let finalBuilt=false;
+function buildFinal(){
+  if(finalBuilt)return;finalBuilt=true;
+  const slots=document.getElementById('slots');
+  const pool=document.getElementById('pool');
+  const hint=document.getElementById('finalHint');
+  const dateEl=document.getElementById('finalDate');
+  const msg=document.getElementById('finalMsg');
+  const resetBtn=document.getElementById('resetBtn');
+
+  // layout: 3 1 . 0 7 . 2 0 2 6
+  const layout=['3','1','dot','0','7','dot','2','0','2','6'];
+  const slotEls=[];
+  layout.forEach(v=>{
+    const s=document.createElement('div');
+    if(v==='dot'){s.className='slot dot';s.textContent='·';}
+    else{s.className='slot';slotEls.push(s);}
+    slots.appendChild(s);
+  });
+
+  // tokens shuffled
+  const order=[...DATE];
+  for(let i=order.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[order[i],order[j]]=[order[j],order[i]];}
+  let nextIdx=0;
+  order.forEach(d=>{
+    const t=document.createElement('button');
+    t.className='token';t.textContent=d;t.dataset.d=d;
+    t.addEventListener('click',()=>{
+      if(t.classList.contains('used'))return;
+      const need=DATE[nextIdx];
+      if(d!==need){
+        hint.textContent='Не эта цифра — попробуй нужную по порядку 🙂';
+        t.animate([{transform:'translateX(0)'},{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'translateX(0)'}],{duration:250});
+        return;
+      }
+      t.classList.add('used');
+      const slot=slotEls[nextIdx];
+      slot.textContent=d;slot.classList.add('filled');
+      nextIdx++;
+      hint.textContent=`${nextIdx}/8`;
+      if(nextIdx===DATE.length){
+        hint.textContent='';
+        setTimeout(reveal,500);
+      }
+    });
+    pool.appendChild(t);
+  });
+
+  function reveal(){
+    dateEl.classList.add('show');
+    confetti();
+    msg.innerHTML='🤍';
+    msg.classList.add('show');
+    setTimeout(()=>resetBtn.style.display='inline-block',1800);
+  }
+  resetBtn.addEventListener('click',()=>location.reload());
+}
+
+/* ---------- confetti ---------- */
+function confetti(){
+  const box=document.getElementById('burst');
+  const glyphs=['🤍','💗','✨','🌸','⭐','💛'];
+  for(let i=0;i<70;i++){
+    const s=document.createElement('span');
+    s.textContent=glyphs[Math.floor(Math.random()*glyphs.length)];
+    s.style.position='absolute';
+    s.style.left=Math.random()*100+'%';
+    s.style.top='-30px';
+    s.style.fontSize=(14+Math.random()*22)+'px';
+    box.appendChild(s);
+    const dx=(Math.random()*2-1)*160;
+    const dur=1800+Math.random()*1600;
+    s.animate([
+      {transform:'translate(0,0) rotate(0)',opacity:1},
+      {transform:`translate(${dx}px,${window.innerHeight+60}px) rotate(${Math.random()*720}deg)`,opacity:.9}
+    ],{duration:dur,easing:'cubic-bezier(.2,.6,.4,1)'});
+    setTimeout(()=>s.remove(),dur);
+  }
+}
+</script>
+</body>
+</html>
